@@ -1,2 +1,7 @@
 explore.py
 __pycache__
+.history
+.env
+*.log
+.ruff_cache
+.venv

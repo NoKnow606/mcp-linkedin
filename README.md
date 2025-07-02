@@ -22,10 +22,19 @@ npx -y @smithery/cli install mcp-linkedin --client claude
     "mcpServers": {
         "linkedin": {
             "command": "uvx",
-            "args": ["--from", "git+https://github.com/adhikasp/mcp-linkedin", "mcp-linkedin"],
+            "args": [
+                "--with", "python-dotenv",
+                "--with", "requests", 
+                "--with", "fastmcp",
+                "python", "/path/to/mcp-linkedin/src/mcp_linkedin/main.py"
+            ],
             "env": {
-                "LINKEDIN_EMAIL": "your_linkedin_email",
-                "LINKEDIN_PASSWORD": "your_linkedin_password"
+                "LINKEDIN_CLIENT_ID": "your_linkedin_client_id",
+                "LINKEDIN_CLIENT_SECRET": "your_linkedin_client_secret", 
+                "LINKEDIN_ACCESS_TOKEN": "your_linkedin_access_token",
+                "LINKEDIN_REFRESH_TOKEN": "your_linkedin_refresh_token",
+                "LINKEDIN_ID_TOKEN": "your_linkedin_id_token",
+                "PYTHONPATH": "/path/to/mcp-servers/mcp-linkedin/src"
             }
         }
     }

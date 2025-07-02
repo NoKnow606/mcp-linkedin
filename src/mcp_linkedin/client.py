@@ -1,64 +1,180 @@
-from linkedin_api import Linkedin
-from fastmcp import FastMCP
+import requests
 import os
 import logging
+from typing import Optional, Dict, Any
 
-mcp = FastMCP("mcp-linkedin")
 logger = logging.getLogger(__name__)
 
-def get_client():
-    return Linkedin(os.getenv("LINKEDIN_EMAIL"), os.getenv("LINKEDIN_PASSWORD"), debug=True)
 
-@mcp.tool()
-def get_feed_posts(limit: int = 10, offset: int = 0) -> str:
+class LinkedInOAuthClient:
     """
-    Retrieve LinkedIn feed posts.
-
-    :return: List of feed post details
+    LinkedIn OAuth-based API client supporting access tokens, refresh tokens, and ID tokens.
     """
-    client = get_client()
-    try:
-        post_urns = client.get_feed_posts(limit=limit, offset=offset)
-    except Exception as e:
-        logger.error(f"Error: {e}")
-        return f"Error: {e}"
-    
-    posts = ""
-    for urn in post_urns:
-        posts += f"Post by {urn["author_name"]}: {urn["content"]}\n"
 
-    return posts
+    def __init__(self):
+        self.access_token = os.getenv("LINKEDIN_ACCESS_TOKEN")
+        self.refresh_token = os.getenv("LINKEDIN_REFRESH_TOKEN")
+        self.client_id = os.getenv("LINKEDIN_CLIENT_ID")
+        self.client_secret = os.getenv("LINKEDIN_CLIENT_SECRET")
+        # Updated to use the REST endpoint for versioned APIs
+        self.base_url = "https://api.linkedin.com/rest"
 
-@mcp.tool()
-def search_jobs(keywords: str, limit: int = 3, offset: int = 0, location: str = '') -> str:
-    """
-    Search for jobs on LinkedIn.
-    
-    :param keywords: Job search keywords
-    :param limit: Maximum number of job results
-    :param location: Optional location filter
-    :return: List of job details
-    """
-    client = get_client()
-    jobs = client.search_jobs(
-        keywords=keywords,
-        location_name=location,
-        limit=limit,
-        offset=offset,
-    )
-    job_results = ""
-    for job in jobs:
-        job_id = job["entityUrn"].split(":")[-1]
-        job_data = client.get_job(job_id=job_id)
+        # Session for connection pooling and consistency
+        self.session = requests.Session()
+        self._setup_session()
 
-        job_title = job_data["title"]
-        company_name = job_data["companyDetails"]["com.linkedin.voyager.deco.jobs.web.shared.WebCompactJobPostingCompany"]["companyResolutionResult"]["name"]
-        job_description = job_data["description"]["text"]
-        job_location = job_data["formattedLocation"]
+    def _setup_session(self):
+        """Setup default headers and session configuration."""
+        self.session.headers.update(
+            {
+                "User-Agent": "LinkedIn-MCP-Tool/1.0",
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "X-Restli-Protocol-Version": "2.0.0",
+                "LinkedIn-Version": "202506",  # Latest version as of July 2025
+            }
+        )
 
-        job_results += f"Job by {job_title} at {company_name} in {job_location}: {job_description}\n\n"
+    def _get_auth_headers(self) -> Dict[str, str]:
+        """Get authorization headers with current access token."""
+        if not self.access_token:
+            raise ValueError("No access token available. Please authenticate first.")
 
-    return job_results
+        return {"Authorization": f"Bearer {self.access_token}"}
+
+    def refresh_access_token(self) -> bool:
+        """
+        Refresh the access token using the refresh token.
+        Returns True if successful, False otherwise.
+        """
+        if not self.refresh_token or not self.client_id or not self.client_secret:
+            logger.error("Missing refresh token or client credentials")
+            return False
+
+        token_url = "https://www.linkedin.com/oauth/v2/accessToken"
+
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": self.refresh_token,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+        }
+
+        try:
+            response = requests.post(
+                token_url,
+                data=data,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
+
+            if response.status_code == 200:
+                token_data = response.json()
+                self.access_token = token_data.get("access_token")
+                # Update refresh token if provided
+                if "refresh_token" in token_data:
+                    self.refresh_token = token_data["refresh_token"]
+
+                logger.info("Access token refreshed successfully")
+                return True
+            else:
+                logger.error(
+                    f"Token refresh failed: {response.status_code} - {response.text}"
+                )
+                return False
+
+        except Exception as e:
+            logger.error(f"Error refreshing token: {e}")
+            return False
+
+    def _make_request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
+        """
+        Make an authenticated request to LinkedIn API.
+        Automatically handles token refresh if needed.
+        """
+        url = f"{self.base_url}{endpoint}"
+        headers = {**self.session.headers, **self._get_auth_headers()}
+
+        if "headers" in kwargs:
+            headers.update(kwargs["headers"])
+
+        kwargs["headers"] = headers
+
+        try:
+            response = self.session.request(method, url, **kwargs)
+
+            # If unauthorized, try to refresh token once
+            if response.status_code == 401:
+                logger.info("Access token expired, attempting refresh...")
+                if self.refresh_access_token():
+                    # Retry with new token
+                    headers = {**self.session.headers, **self._get_auth_headers()}
+                    if "headers" in kwargs:
+                        headers.update(kwargs["headers"])
+                    kwargs["headers"] = headers
+                    response = self.session.request(method, url, **kwargs)
+                else:
+                    raise Exception("Failed to refresh access token")
+
+            return response
+
+        except Exception as e:
+            logger.error(f"Request failed: {e}")
+            raise
+
+    def get_profile(self, fields: Optional[str] = None) -> Dict[str, Any]:
+        """Get the authenticated user's profile using LinkedIn API v2."""
+        # Use the correct LinkedIn API v2 endpoint for profile (still on v2)
+        endpoint = "/v2/me"
+        if fields:
+            endpoint += f"?fields={fields}"
+
+        try:
+            # For profile endpoint, we need to use the v2 base URL temporarily
+            v2_url = f"https://api.linkedin.com{endpoint}"
+            headers = {**self.session.headers, **self._get_auth_headers()}
+
+            response = self.session.request("GET", v2_url, headers=headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 403:
+                raise Exception(
+                    "Profile access forbidden. Please ensure your LinkedIn app has the 'r_basicprofile' or 'profile' scope."
+                )
+            elif e.response.status_code == 401:
+                raise Exception(
+                    "Unauthorized. Please check your access token or refresh it."
+                )
+            else:
+                raise Exception(
+                    f"Profile API error: {e.response.status_code} - {e.response.text}"
+                )
+
+
+# Global client instance
+_client = None
+
+
+def get_client() -> LinkedInOAuthClient:
+    """Get or create the LinkedIn OAuth client instance."""
+    global _client
+    if _client is None:
+        _client = LinkedInOAuthClient()
+    return _client
+
 
 if __name__ == "__main__":
-    print(search_jobs(keywords="data engineer", location="Jakarta", limit=2))
+    # Example usage for testing
+    print("Testing LinkedIn OAuth MCP Client...")
+    try:
+        # Test direct client usage
+        client = get_client()
+        profile = client.get_profile(fields="id,localizedFirstName,localizedLastName")
+        print("Profile Data:", profile)
+
+        # Test token refresh
+        success = client.refresh_access_token()
+        print("Token Refresh Success:", success)
+
+    except Exception as e:
+        print(f"Test failed: {e}")

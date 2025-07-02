@@ -22,4 +22,4 @@ authors = [
 Homepage = "https://github.com/adhikasp/mcp-linkedin"
 
 [project.scripts]
-mcp-linkedin = "mcp_linkedin.client:mcp.run"
+mcp-linkedin = "mcp_linkedin.main:run_server"
