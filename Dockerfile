@@ -24,4 +24,4 @@ ENV LINKEDIN_ACCESS_TOKEN=LINKEDIN_ACCESS_TOKEN
 ENV LINKEDIN_REFRESH_TOKEN=LINKEDIN_REFRESH_TOKEN
 
 # Set the entry point for the container
-ENTRYPOINT ["ptyhon","-m", "src.mcp_linkedin.main"]
+CMD ["python3","-m", "src.mcp_linkedin.main"]
