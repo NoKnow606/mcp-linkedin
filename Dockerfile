@@ -22,6 +22,7 @@ ENV LINKEDIN_CLIENT_ID=your_linkedin_client_id
 ENV LINKEDIN_CLIENT_SECRET=LINKEDIN_CLIENT_SECRET
 ENV LINKEDIN_ACCESS_TOKEN=LINKEDIN_ACCESS_TOKEN
 ENV LINKEDIN_REFRESH_TOKEN=LINKEDIN_REFRESH_TOKEN
+ENV PYTHONPATH=/app
 
 # Set the entry point for the container
-CMD ["python3","-m", "src.mcp_linkedin.main"]
+CMD ["python","-m", "src.mcp_linkedin.main"]
