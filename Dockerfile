@@ -9,6 +9,7 @@ WORKDIR /app
 COPY pyproject.toml /app/
 COPY src /app/src
 COPY requirements.lock /app/
+COPY README.md /app/
 
 # Install the dependencies specified in the pyproject.toml
 RUN pip install --upgrade pip

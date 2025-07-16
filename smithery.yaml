@@ -6,16 +6,24 @@ startCommand:
     # JSON Schema defining the configuration options for the MCP.
     type: object
     required:
-      - linkedinEmail
-      - linkedinPassword
+      - linkedinClientId
+      - linkedinClientSecret
+      - linkedinAccessToken
+      - linkedinRefreshToken
     properties:
-      linkedinEmail:
+      linkedinClientId:
         type: string
         description: Your LinkedIn email address
-      linkedinPassword:
+      linkedinClientSecret:
+        type: string
+        description: Your LinkedIn password
+      linkedinAccessToken:
+        type: string
+        description: Your LinkedIn password
+      linkedinRefreshToken:
         type: string
         description: Your LinkedIn password
   commandFunction:
     # A function that produces the CLI command to start the MCP on stdio.
     |-
-    (config) => ({command: 'uvicorn', args: ['mcp_linkedin.client:mcp.run', '--host', '0.0.0.0', '--port', '8000'], env: {LINKEDIN_EMAIL: config.linkedinEmail, LINKEDIN_PASSWORD: config.linkedinPassword}})
+    (config) => ({command: 'uvicorn', args: ['mcp_linkedin.client:mcp.run', '--host', '0.0.0.0', '--port', '8000'], env: {LINKEDIN_ACCESS_TOKEN: config.linkedinAccessToken, LINKEDIN_REFRESH_TOKEN: config.linkedinRefreshToken, LINKEDIN_CLIENT_ID: config.linkedinClientId, LINKEDIN_CLIENT_SECRET: config.linkedinClientSecret}})
