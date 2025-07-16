@@ -33,8 +33,6 @@ npx -y @smithery/cli install mcp-linkedin --client claude
                 "LINKEDIN_CLIENT_SECRET": "your_linkedin_client_secret", 
                 "LINKEDIN_ACCESS_TOKEN": "your_linkedin_access_token",
                 "LINKEDIN_REFRESH_TOKEN": "your_linkedin_refresh_token",
-                "LINKEDIN_ID_TOKEN": "your_linkedin_id_token",
-                "PYTHONPATH": "/path/to/mcp-servers/mcp-linkedin/src"
             }
         }
     }

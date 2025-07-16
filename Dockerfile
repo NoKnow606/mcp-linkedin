@@ -16,8 +16,10 @@ RUN pip install .
 
 # Set environment variables for LinkedIn credentials
 # These should be set during container run or through a Docker secret mechanism
-ENV LINKEDIN_EMAIL=your_linkedin_email
-ENV LINKEDIN_PASSWORD=your_linkedin_password
+ENV LINKEDIN_CLIENT_ID=your_linkedin_client_id
+ENV LINKEDIN_CLIENT_SECRET=LINKEDIN_CLIENT_SECRET
+ENV LINKEDIN_ACCESS_TOKEN=LINKEDIN_ACCESS_TOKEN
+ENV LINKEDIN_REFRESH_TOKEN=LINKEDIN_REFRESH_TOKEN
 
 # Set the entry point for the container
 ENTRYPOINT ["uvicorn", "mcp_linkedin.client:mcp.run", "--host", "0.0.0.0", "--port", "8000"]
