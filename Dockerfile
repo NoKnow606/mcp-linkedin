@@ -24,4 +24,4 @@ ENV LINKEDIN_ACCESS_TOKEN=LINKEDIN_ACCESS_TOKEN
 ENV LINKEDIN_REFRESH_TOKEN=LINKEDIN_REFRESH_TOKEN
 
 # Set the entry point for the container
-ENTRYPOINT ["uvicorn", "mcp_linkedin.client:mcp.run", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["ptyhon","-m", "src.mcp_linkedin.main"]
