@@ -12,6 +12,7 @@ COPY requirements.lock /app/
 
 # Install the dependencies specified in the pyproject.toml
 RUN pip install --upgrade pip
+RUN pip install hatchling
 RUN pip install -r requirements.lock
 
 # Set environment variables for LinkedIn credentials
