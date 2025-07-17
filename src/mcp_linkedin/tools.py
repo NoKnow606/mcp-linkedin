@@ -7,21 +7,16 @@ logger = logging.getLogger(__name__)
 
 
 # Regular functions for testing and direct usage
-def _get_profile_info(
-    fields: str = "id,localizedFirstName,localizedLastName,localizedHeadline",
-) -> str:
+def _get_profile_info() -> str:
     """
     Get the authenticated user's LinkedIn profile information.
-
-    Args:
-        fields: Comma-separated list of profile fields to retrieve
 
     Returns:
         String containing formatted profile information or error message
     """
     try:
         client = get_client()
-        profile = client.get_profile(fields=fields)
+        profile = client.get_profile()
 
         result = "LinkedIn Profile Information:\n"
         for key, value in profile.items():

@@ -19,9 +19,9 @@ RUN pip install -r requirements.lock
 # Set environment variables for LinkedIn credentials
 # These should be set during container run or through a Docker secret mechanism
 ENV LINKEDIN_CLIENT_ID=your_linkedin_client_id
-ENV LINKEDIN_CLIENT_SECRET=LINKEDIN_CLIENT_SECRET
-ENV LINKEDIN_ACCESS_TOKEN=LINKEDIN_ACCESS_TOKEN
-ENV LINKEDIN_REFRESH_TOKEN=LINKEDIN_REFRESH_TOKEN
+ENV LINKEDIN_CLIENT_SECRET=your_linkedin_client_id
+ENV LINKEDIN_ACCESS_TOKEN=your_linkedin_client_id
+ENV LINKEDIN_REFRESH_TOKEN=your_linkedin_client_id
 ENV PYTHONPATH=/app
 
 # Set the entry point for the container
