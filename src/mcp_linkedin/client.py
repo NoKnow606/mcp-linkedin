@@ -163,20 +163,3 @@ def get_client() -> LinkedInOAuthClient:
     if _client is None:
         _client = LinkedInOAuthClient()
     return _client
-
-
-if __name__ == "__main__":
-    # Example usage for testing
-    print("Testing LinkedIn OAuth MCP Client...")
-    try:
-        # Test direct client usage
-        client = get_client()
-        profile = client.get_profile()
-        print("Profile Data:", profile)
-
-        # Test token refresh
-        success = client.refresh_access_token()
-        print("Token Refresh Success:", success)
-
-    except Exception as e:
-        print(f"hello Test failed: {e}")

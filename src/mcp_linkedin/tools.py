@@ -164,7 +164,3 @@ def create_post(
         String containing the post creation result or error message
     """
     return _create_post(commentary, visibility, feed_distribution)
-
-
-if __name__ == '__main__':
-    print(_create_post("rowland test"))
