@@ -125,19 +125,14 @@ def _create_post(
 
 # MCP Tool decorators that call the internal functions
 @mcp.tool()
-def get_profile_info(
-    fields: str = "id,localizedFirstName,localizedLastName,localizedHeadline",
-) -> str:
+def get_profile_info() -> str:
     """
     Get the authenticated user's LinkedIn profile information.
-
-    Args:
-        fields: Comma-separated list of profile fields to retrieve
 
     Returns:
         String containing formatted profile information or error message
     """
-    return _get_profile_info(fields)
+    return _get_profile_info()
 
 
 @mcp.tool()
