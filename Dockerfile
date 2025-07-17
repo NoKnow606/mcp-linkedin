@@ -7,11 +7,11 @@ WORKDIR /app
 
 # Copy the pyproject.toml file and src directory into the container
 COPY src /app/src
-COPY requirements.lock /app/
+COPY requirements.lock /app/requirements.txt
 
 # Install the dependencies specified in the pyproject.toml
 RUN pip install --upgrade pip
-RUN pip install -r requirements.lock
+RUN pip install -r requirements.txt
 
 # Set environment variables for LinkedIn credentials
 # These should be set during container run or through a Docker secret mechanism
