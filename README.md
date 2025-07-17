@@ -12,7 +12,7 @@ This is using unofficial LinkedIn API via [Linkedin-api](https://github.com/tomq
 To install LinkedIn Interaction Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/mcp-linkedin):
 
 ```bash
-npx -y @smithery/cli install mcp-linkedin --client claude
+npx -y @smithery/cli install mcp-linkedin --client claude -- transport sse
 ```
 
 ## Configuration

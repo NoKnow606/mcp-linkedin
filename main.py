@@ -310,4 +310,4 @@ def create_post(
 
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="sse")

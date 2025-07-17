@@ -12,8 +12,12 @@ RUN pip install --upgrade pip
 # Copy project files
 COPY . .
 
+
+
 # Install Python dependencies
 RUN pip install  --no-cache -r requirements.lock
+
+EXPOSE 8000
 
 
 # Default command
