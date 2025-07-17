@@ -2,8 +2,10 @@ import logging
 from fastmcp import FastMCP
 from src.mcp_linkedin.client import get_client
 
-mcp = FastMCP("mcp-linkedin")
 logger = logging.getLogger(__name__)
+
+mcp = FastMCP("mcp-linkedin")
+
 
 
 # Regular functions for testing and direct usage
