@@ -92,7 +92,7 @@ def _create_post(
         print(post_data)
 
         # Make the API call to create the post using the REST API
-        response = client._make_request(
+        response = client.make_request(
             "POST",
             "/v2/posts",
             json=post_data,

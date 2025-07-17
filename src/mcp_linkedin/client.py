@@ -86,7 +86,7 @@ class LinkedInOAuthClient:
             logger.error(f"Error refreshing token: {e}")
             return False
 
-    def _make_request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
+    def make_request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
         """
         Make an authenticated request to LinkedIn API.
         Automatically handles token refresh if needed.
