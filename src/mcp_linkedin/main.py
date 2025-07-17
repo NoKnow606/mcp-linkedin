@@ -132,6 +132,7 @@ def get_profile_info() -> str:
     Returns:
         String containing formatted profile information or error message
     """
+    logger.info("Getting profile info")
     return _get_profile_info()
 
 
@@ -152,6 +153,7 @@ def create_post(
     Returns:
         String containing the post creation result or error message
     """
+    logger.info("create post")
     return _create_post(commentary, visibility, feed_distribution)
 
 
