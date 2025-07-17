@@ -17,7 +17,7 @@ class LinkedInOAuthClient:
         self.client_id = os.getenv("LINKEDIN_CLIENT_ID")
         self.client_secret = os.getenv("LINKEDIN_CLIENT_SECRET")
         # Updated to use the REST endpoint for versioned APIs
-        self.base_url = "https://api.linkedin.com/rest"
+        self.base_url = "https://api.linkedin.com"
 
         # Session for connection pooling and consistency
         self.session = requests.Session()
@@ -29,9 +29,9 @@ class LinkedInOAuthClient:
             {
                 "User-Agent": "LinkedIn-MCP-Tool/1.0",
                 "Accept": "application/json",
-                "Content-Type": "application/json",
+                "Content-Type": "text/plain",
                 "X-Restli-Protocol-Version": "2.0.0",
-                "LinkedIn-Version": "202506",  # Latest version as of July 2025
+                "LinkedIn-Version": "X-Restli-Protocol-Version",  # Latest version as of July 2025
             }
         )
 
@@ -102,6 +102,8 @@ class LinkedInOAuthClient:
         try:
             response = self.session.request(method, url, **kwargs)
 
+            print(response.text)
+
             # If unauthorized, try to refresh token once
             if response.status_code == 401:
                 logger.info("Access token expired, attempting refresh...")
@@ -123,13 +125,13 @@ class LinkedInOAuthClient:
 
     def get_profile(self, fields: Optional[str] = None) -> Dict[str, Any]:
         """Get the authenticated user's profile using LinkedIn API v2."""
-        # Use the correct LinkedIn API v2 endpoint for profile (still on v2)
-        endpoint = "/v2/me"
+        # Use the correct LinkedIn API v2 endpoint for profile
+        endpoint = "/v2/userinfo"
         if fields:
             endpoint += f"?fields={fields}"
 
         try:
-            # For profile endpoint, we need to use the v2 base URL temporarily
+            # For profile endpoint, we need to use the v2 base URL
             v2_url = f"https://api.linkedin.com{endpoint}"
             headers = {**self.session.headers, **self._get_auth_headers()}
 
@@ -169,7 +171,7 @@ if __name__ == "__main__":
     try:
         # Test direct client usage
         client = get_client()
-        profile = client.get_profile(fields="id,localizedFirstName,localizedLastName")
+        profile = client.get_profile()
         print("Profile Data:", profile)
 
         # Test token refresh
@@ -177,4 +179,4 @@ if __name__ == "__main__":
         print("Token Refresh Success:", success)
 
     except Exception as e:
-        print(f"Test failed: {e}")
+        print(f"hello Test failed: {e}")

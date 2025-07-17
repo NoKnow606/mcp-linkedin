@@ -42,8 +42,8 @@ class LinkedInOAuthHelper:
             "profile",  # For profile access
             "email",  # For email access
             "w_member_social",  # For posting to feed
-            "r_liteprofile",  # For profile reading
-            "r_emailaddress",  # For email reading
+            # "r_liteprofile",  # For profile reading
+            # "r_emailaddress",  # For email reading
         ]
 
     def get_authorization_url(self, state: str = "mcp-linkedin") -> str:
@@ -270,4 +270,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    client = LinkedInOAuthHelper(client_id="86txinamyoam7e", client_secret="WPL_AP1.yhioziNlBYP7xjdf.r0CTsQ==", redirect_uri="http://localhost:3001/auth/linkedin/callback")
+    url = client.get_authorization_url()
+    print(url)

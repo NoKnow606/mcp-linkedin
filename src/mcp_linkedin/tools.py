@@ -1,6 +1,6 @@
 import logging
 from fastmcp import FastMCP
-from .client import get_client
+from src.mcp_linkedin.client import get_client
 
 mcp = FastMCP("mcp-linkedin")
 logger = logging.getLogger(__name__)
@@ -56,16 +56,14 @@ def _refresh_token() -> str:
 
 
 def _create_post(
-    author: str,
     commentary: str,
     visibility: str = "PUBLIC",
     feed_distribution: str = "MAIN_FEED",
 ) -> str:
     """
-    Create a post on LinkedIn using the Posts API.
+    Create a post on LinkedIn using the REST API.
 
     Args:
-        author: URN of the author (person or organization)
         commentary: The text content of the post
         visibility: Visibility of the post (PUBLIC, CONNECTIONS, LOGGED_IN)
         feed_distribution: Feed distribution setting (MAIN_FEED, NONE)
@@ -76,7 +74,13 @@ def _create_post(
     try:
         client = get_client()
 
-        # Create the post payload according to LinkedIn Posts API v2 spec
+        profile = client.get_profile()
+
+        author_id = profile.get("sub")
+
+        author = "urn:li:person:" + author_id
+
+        # Create the post payload according to LinkedIn REST API spec
         post_data = {
             "author": author,
             "commentary": commentary,
@@ -87,22 +91,21 @@ def _create_post(
                 "thirdPartyDistributionChannels": [],
             },
             "lifecycleState": "PUBLISHED",
-            "isReshareDisabledByAuthor": False,
+            "isReshareDisabledByAuthor": True,
         }
 
-        # Make the API call to create the post
+        print(post_data)
+
+        # Make the API call to create the post using the REST API
         response = client._make_request(
             "POST",
-            "/posts",  # Using the new Posts API endpoint
+            "/v2/posts",
             json=post_data,
         )
 
         response.raise_for_status()
 
-        # Get the post ID from the response header
-        post_id = response.headers.get("x-restli-id", "Unknown")
-
-        return f"Post created successfully! Post ID: {post_id}"
+        return f"Post created successfully!"
 
     except Exception as e:
         logger.error(f"Error creating post: {e}")
@@ -111,7 +114,15 @@ def _create_post(
             try:
                 error_details = e.response.text
                 logger.error(f"API Error Response: {error_details}")
-                return f"Error creating post: {str(e)}\nAPI Response: {error_details}"
+                
+                if e.response.status_code == 403:
+                    return f"Error creating post: Permission denied (403).\n" \
+                           f"This usually means your LinkedIn app doesn't have the required permissions.\n" \
+                           f"Required permissions: 'w_member_social' scope\n" \
+                           f"Please check your LinkedIn app settings and ensure the app has the correct permissions.\n" \
+                           f"API Response: {error_details}"
+                else:
+                    return f"Error creating post: {str(e)}\nAPI Response: {error_details}"
             except:
                 pass
         return f"Error creating post: {str(e)}"
@@ -147,7 +158,6 @@ def refresh_token(random_string: str = "") -> str:
 
 @mcp.tool()
 def create_post(
-    author: str,
     commentary: str,
     visibility: str = "PUBLIC",
     feed_distribution: str = "MAIN_FEED",
@@ -156,7 +166,6 @@ def create_post(
     Create a post on LinkedIn using the Posts API.
 
     Args:
-        author: URN of the author (person or organization) - e.g., "urn:li:person:123" or "urn:li:organization:456"
         commentary: The text content of the post
         visibility: Visibility of the post (PUBLIC, CONNECTIONS, LOGGED_IN, CONTAINER)
         feed_distribution: Feed distribution setting (MAIN_FEED, NONE)
@@ -164,4 +173,8 @@ def create_post(
     Returns:
         String containing the post creation result or error message
     """
-    return _create_post(author, commentary, visibility, feed_distribution)
+    return _create_post(commentary, visibility, feed_distribution)
+
+
+if __name__ == '__main__':
+    print(_create_post("rowland test"))
