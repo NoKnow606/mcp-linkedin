@@ -6,14 +6,11 @@ FROM python:3.13-slim
 WORKDIR /app
 
 # Copy the pyproject.toml file and src directory into the container
-COPY pyproject.toml /app/
 COPY src /app/src
 COPY requirements.lock /app/
-COPY README.md /app/
 
 # Install the dependencies specified in the pyproject.toml
 RUN pip install --upgrade pip
-RUN pip install hatchling
 RUN pip install -r requirements.lock
 
 # Set environment variables for LinkedIn credentials
