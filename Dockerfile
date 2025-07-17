@@ -5,11 +5,63 @@ FROM python:3.13-slim
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the pyproject.toml file and src directory into the container
+# Copy the source code
 COPY src /app/src
-COPY requirements.lock /app/requirements.txt
 
-# Install the dependencies specified in the pyproject.toml
+# Create a requirements.txt without the project reference
+RUN echo "annotated-types==0.7.0" > requirements.txt && \
+    echo "anyio==4.9.0" >> requirements.txt && \
+    echo "attrs==25.3.0" >> requirements.txt && \
+    echo "authlib==1.6.0" >> requirements.txt && \
+    echo "beautifulsoup4==4.13.4" >> requirements.txt && \
+    echo "certifi==2025.7.14" >> requirements.txt && \
+    echo "cffi==1.17.1" >> requirements.txt && \
+    echo "charset-normalizer==3.4.2" >> requirements.txt && \
+    echo "click==8.2.1" >> requirements.txt && \
+    echo "cryptography==45.0.5" >> requirements.txt && \
+    echo "cyclopts==3.22.2" >> requirements.txt && \
+    echo "dnspython==2.7.0" >> requirements.txt && \
+    echo "docstring-parser==0.16" >> requirements.txt && \
+    echo "docutils==0.21.2" >> requirements.txt && \
+    echo "email-validator==2.2.0" >> requirements.txt && \
+    echo "exceptiongroup==1.3.0" >> requirements.txt && \
+    echo "fastmcp==2.10.5" >> requirements.txt && \
+    echo "h11==0.16.0" >> requirements.txt && \
+    echo "httpcore==1.0.9" >> requirements.txt && \
+    echo "httpx==0.28.1" >> requirements.txt && \
+    echo "httpx-sse==0.4.1" >> requirements.txt && \
+    echo "idna==3.10" >> requirements.txt && \
+    echo "jsonschema==4.24.0" >> requirements.txt && \
+    echo "jsonschema-specifications==2025.4.1" >> requirements.txt && \
+    echo "linkedin-api==2.3.1" >> requirements.txt && \
+    echo "lxml==5.4.0" >> requirements.txt && \
+    echo "markdown-it-py==3.0.0" >> requirements.txt && \
+    echo "mcp==1.11.0" >> requirements.txt && \
+    echo "mdurl==0.1.2" >> requirements.txt && \
+    echo "openapi-pydantic==0.5.1" >> requirements.txt && \
+    echo "pycparser==2.22" >> requirements.txt && \
+    echo "pydantic==2.11.7" >> requirements.txt && \
+    echo "pydantic-core==2.33.2" >> requirements.txt && \
+    echo "pydantic-settings==2.10.1" >> requirements.txt && \
+    echo "pygments==2.19.2" >> requirements.txt && \
+    echo "pyperclip==1.9.0" >> requirements.txt && \
+    echo "python-dotenv==1.1.1" >> requirements.txt && \
+    echo "python-multipart==0.0.20" >> requirements.txt && \
+    echo "referencing==0.36.2" >> requirements.txt && \
+    echo "requests==2.32.4" >> requirements.txt && \
+    echo "rich==14.0.0" >> requirements.txt && \
+    echo "rich-rst==1.3.1" >> requirements.txt && \
+    echo "rpds-py==0.26.0" >> requirements.txt && \
+    echo "sniffio==1.3.1" >> requirements.txt && \
+    echo "soupsieve==2.7" >> requirements.txt && \
+    echo "sse-starlette==2.4.1" >> requirements.txt && \
+    echo "starlette==0.47.1" >> requirements.txt && \
+    echo "typing-extensions==4.14.1" >> requirements.txt && \
+    echo "typing-inspection==0.4.1" >> requirements.txt && \
+    echo "urllib3==2.5.0" >> requirements.txt && \
+    echo "uvicorn==0.35.0" >> requirements.txt
+
+# Install the dependencies
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
