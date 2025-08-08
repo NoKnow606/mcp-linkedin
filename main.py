@@ -9,7 +9,7 @@ from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP("mcp-linkedin", port=3333)
+mcp = FastMCP("mcp-linkedin", port=3333, host='0.0.0.0')
 
 
 class LinkedInOAuthClient:
