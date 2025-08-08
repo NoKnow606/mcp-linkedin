@@ -1,5 +1,7 @@
 import logging
-from fastmcp import FastMCP
+from os import access
+
+from fastmcp import FastMCP, Context
 import requests
 import os
 from typing import Optional, Dict, Any
@@ -7,7 +9,7 @@ from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP("mcp-linkedin")
+mcp = FastMCP("mcp-linkedin", port=3333)
 
 
 class LinkedInOAuthClient:
@@ -15,11 +17,11 @@ class LinkedInOAuthClient:
     LinkedIn OAuth-based API client supporting access tokens, refresh tokens, and ID tokens.
     """
 
-    def __init__(self):
-        self.access_token = os.getenv("LINKEDIN_ACCESS_TOKEN")
-        self.refresh_token = os.getenv("LINKEDIN_REFRESH_TOKEN")
-        self.client_id = os.getenv("LINKEDIN_CLIENT_ID")
-        self.client_secret = os.getenv("LINKEDIN_CLIENT_SECRET")
+    def __init__(self, client_id: Optional[str] = None, client_secret: Optional[str] = None, access_token: Optional[str]=None, refresh_token: Optional[str]=None):
+        self.access_token = access_token  or os.getenv("LINKEDIN_ACCESS_TOKEN")
+        self.refresh_token = refresh_token or os.getenv("LINKEDIN_REFRESH_TOKEN")
+        self.client_id = client_id or os.getenv("LINKEDIN_CLIENT_ID")
+        self.client_secret = client_secret or os.getenv("LINKEDIN_CLIENT_SECRET")
         # Updated to use the REST endpoint for versioned APIs
         self.base_url = "https://api.linkedin.com"
 
@@ -157,12 +159,11 @@ class LinkedInOAuthClient:
                 )
 
 
-client = LinkedInOAuthClient()
 
 
 
 # Regular functions for testing and direct usage
-def _get_profile_info() -> str:
+def _get_profile_info(ctx: Context) -> str:
     """
     Get the authenticated user's LinkedIn profile information.
 
@@ -170,6 +171,29 @@ def _get_profile_info() -> str:
         String containing formatted profile information or error message
     """
     try:
+        headers = {}
+        if ctx and hasattr(ctx, 'request_context') and ctx.request_context:
+            headers_raw = ctx.request_context.request.get("headers", {})
+
+            # Convert headers from list of tuples to dictionary
+            if isinstance(headers_raw, list):
+                headers = {key.decode() if isinstance(key, bytes) else key:
+                               value.decode() if isinstance(value, bytes) else value
+                           for key, value in headers_raw}
+            else:
+                headers = headers_raw
+
+        client_id = headers.get("linkedin_client_id")
+        client_secret = headers.get("linkedin_client_secret")
+        access_token = headers.get("linkedin_access_token")
+
+        if client_id and client_secret and access_token:
+            logger.info("Creating post on LinkedIn")
+        else:
+            return f"Error creating post: Miss client_id or client_secret or access_token"
+
+        client = LinkedInOAuthClient(client_id=client_id, client_secret=client_secret, access_token=access_token)
+
         profile = client.get_profile()
 
         result = "LinkedIn Profile Information:\n"
@@ -183,27 +207,28 @@ def _get_profile_info() -> str:
         return f"Error retrieving profile: {str(e)}"
 
 
-def _refresh_token() -> str:
-    """
-    Manually refresh the LinkedIn access token using the refresh token.
-
-    Returns:
-        String indicating success or failure of token refresh
-    """
-    try:
-        success = client.refresh_access_token()
-
-        if success:
-            return "Access token refreshed successfully."
-        else:
-            return "Failed to refresh access token. Check your refresh token and client credentials."
-
-    except Exception as e:
-        logger.error(f"Error refreshing token: {e}")
-        return f"Error refreshing token: {str(e)}"
+# def _refresh_token() -> str:
+#     """
+#     Manually refresh the LinkedIn access token using the refresh token.
+#
+#     Returns:
+#         String indicating success or failure of token refresh
+#     """
+#     try:
+#         success = client.refresh_access_token()
+#
+#         if success:
+#             return "Access token refreshed successfully."
+#         else:
+#             return "Failed to refresh access token. Check your refresh token and client credentials."
+#
+#     except Exception as e:
+#         logger.error(f"Error refreshing token: {e}")
+#         return f"Error refreshing token: {str(e)}"
 
 
 def _create_post(
+    ctx: Context,
     commentary: str,
     visibility: str = "PUBLIC",
     feed_distribution: str = "MAIN_FEED",
@@ -220,6 +245,33 @@ def _create_post(
         String containing the post creation result or error message
     """
     try:
+        headers = {}
+        if ctx and hasattr(ctx, 'request_context') and ctx.request_context:
+            headers_raw = ctx.request_context.request.get("headers", {})
+
+            # Convert headers from list of tuples to dictionary
+            if isinstance(headers_raw, list):
+                headers = {key.decode() if isinstance(key, bytes) else key:
+                               value.decode() if isinstance(value, bytes) else value
+                           for key, value in headers_raw}
+            else:
+                headers = headers_raw
+
+        client_id = headers.get("linkedin_client_id")
+        client_secret = headers.get("linkedin_client_secret")
+        refresh_token = headers.get("linkedin_refresh_token")
+
+
+        if client_id and client_secret and refresh_token:
+            logger.info("Creating post on LinkedIn")
+        else:
+            return f"Error creating post: Miss client_id or client_secret or refresh_token"
+
+
+
+        client = LinkedInOAuthClient(client_id=client_id, client_secret=client_secret, refresh_token=refresh_token)
+
+        client.refresh_access_token()
 
         profile = client.get_profile()
 
@@ -277,19 +329,19 @@ def _create_post(
 
 # MCP Tool decorators that call the internal functions
 @mcp.tool
-def get_profile_info() -> str:
+def get_profile_info(ctx: Context) -> str:
     """
     Get the authenticated user's LinkedIn profile information.
 
     Returns:
         String containing formatted profile information or error message
     """
-    logger.info("Getting profile info")
-    return _get_profile_info()
+    return _get_profile_info(ctx)
 
 
 @mcp.tool
 def create_post(
+    ctx: Context,
     commentary: str,
     visibility: str = "PUBLIC",
     feed_distribution: str = "MAIN_FEED",
@@ -305,9 +357,8 @@ def create_post(
     Returns:
         String containing the post creation result or error message
     """
-    logger.info("create post")
-    return _create_post(commentary, visibility, feed_distribution)
+    return _create_post(ctx, commentary, visibility, feed_distribution)
 
 
 if __name__ == "__main__":
-    mcp.run(transport="sse")
+    mcp.run(transport="streamable-http")
